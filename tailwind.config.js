@@ -55,13 +55,26 @@ module.exports = {
         danger: token('danger'),
         'on-danger': token('on-danger'),
         focus: token('focus'), // the keyboard focus ring
+        // One colour per choice, in the order the choices were added: the
+        // tally strip's slips and each choice's swatch. Party colours on a
+        // results board, never accents — and no violet among them, so a
+        // vote's ink never looks like a choice.
+        'choice-1': token('choice-1'), // teal
+        'choice-2': token('choice-2'), // amber
+        'choice-3': token('choice-3'), // rose
+        'choice-4': token('choice-4'), // blue
+        'choice-5': token('choice-5'), // green
+        'choice-6': token('choice-6'), // slate
       },
       // The type scale: four sizes, and nothing in between.
       fontSize: {
         small: ['0.875rem', { lineHeight: '1.25rem' }],
         body: ['1rem', { lineHeight: '1.5rem' }],
-        heading: ['1.25rem', { lineHeight: '1.75rem', fontWeight: '600' }],
-        title: ['1.75rem', { lineHeight: '2.25rem', fontWeight: '700' }],
+        heading: ['1.1875rem', { lineHeight: '1.5625rem', fontWeight: '600' }],
+        title: ['1.75rem', { lineHeight: '2.125rem', fontWeight: '700' }],
+      },
+      fontFamily: {
+        display: ['ui-rounded', 'SF Pro Rounded', 'Nunito', 'system-ui', 'sans-serif'],
       },
     },
   },

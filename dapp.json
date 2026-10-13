@@ -6,5 +6,27 @@
   "secrets": [],
   "governance": {
     "preset": "you_or_the_group"
-  }
+  },
+  "tests": [
+    {
+      "id": "decisions-demo",
+      "name": "Decisions list, demo",
+      "path": "/?demo=1",
+      "expectSelector": "[data-decision-card]",
+      "expectText": "Where should we meet on Saturday?",
+      "visual": true,
+      "impact": ["public/**", "styles/**", "server.js", "tailwind.config.js"]
+    },
+    {
+      "name": "Decision detail, demo",
+      "path": "/?demo=1#/d/900001",
+      "expectText": "Riverside café"
+    },
+    {
+      "name": "Plain route renders its production-shaped screen",
+      "path": "/",
+      "expectSelector": "main[data-screen=\"list\"]",
+      "expectText": "Club Votes"
+    }
+  ]
 }

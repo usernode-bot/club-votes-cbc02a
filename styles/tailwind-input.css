@@ -29,35 +29,56 @@
  */
 @layer base {
   :root {
-    --ground: 250 250 249;    /* the page */
-    --surface: 255 255 255;   /* lists, cards, fields */
-    --raised: 245 245 244;    /* hovers, badges */
-    --fg: 28 25 23;           /* text */
-    --muted: 87 83 78;        /* secondary text */
-    --line: 231 229 228;      /* borders, dividers, skeletons */
-    --accent: 15 118 110;     /* the one accent */
-    --on-accent: 255 255 255; /* text on the accent */
+    /* Cool ballot-paper greys. */
+    --ground: 244 246 248;    /* the page */
+    --surface: 255 255 255;   /* cards, lists, fields */
+    --raised: 233 237 242;    /* chips, the demo line, bar tracks */
+    --fg: 20 25 33;           /* text */
+    --muted: 80 89 102;       /* secondary text */
+    --line: 218 224 231;      /* borders, dividers, empty ballot boxes */
+    /* Election-ink violet: actions, your own vote, the Open status. */
+    --accent: 91 33 182;
+    --on-accent: 255 255 255;
     --danger: 185 28 28;
     --on-danger: 255 255 255;
-    --focus: 13 148 136;      /* the keyboard focus ring */
+    --focus: 124 58 237;      /* the keyboard focus ring */
+    /* One colour per choice, in the order the choices were added:
+       teal, amber, rose, blue, green, slate. */
+    --choice-1: 13 148 136;
+    --choice-2: 217 119 6;
+    --choice-3: 225 29 72;
+    --choice-4: 37 99 235;
+    --choice-5: 77 124 15;
+    --choice-6: 100 116 139;
   }
   .dark {
-    --ground: 12 10 9;
-    --surface: 28 25 23;
-    --raised: 41 37 36;
-    --fg: 245 245 244;
-    --muted: 168 162 158;
-    --line: 68 64 60;
-    --accent: 45 212 191;
-    --on-accent: 4 47 46;
+    --ground: 14 17 22;
+    --surface: 24 28 35;
+    --raised: 35 41 50;
+    --fg: 236 239 243;
+    --muted: 160 170 184;
+    --line: 51 59 71;
+    --accent: 196 181 253;
+    --on-accent: 46 16 101;
     --danger: 248 113 113;
     --on-danger: 69 10 10;
-    --focus: 94 234 212;
+    --focus: 196 181 253;
+    --choice-1: 45 212 191;
+    --choice-2: 251 191 36;
+    --choice-3: 251 113 133;
+    --choice-4: 96 165 250;
+    --choice-5: 163 230 53;
+    --choice-6: 148 163 184;
   }
   /* el.hidden = true hides an element even when a class gives it a display
      (flex, the components below). */
   [hidden]:where(:not([hidden="until-found"])) {
     display: none !important;
+  }
+  /* The native UI kit's one accent, pointed at this app's election ink. */
+  :root, .dark {
+    --un-accent: rgb(var(--accent));
+    --un-accent-contrast: rgb(var(--on-accent));
   }
 }
 
@@ -108,7 +129,7 @@
 
   /* The label above a section: sentence case, never uppercase or tracked. */
   .section-label {
-    @apply mb-2 px-1 text-small font-medium text-muted;
+    @apply mb-2 text-small font-medium text-muted;
   }
 
   /* The states of anything that loads data. Show exactly one at a time:
@@ -125,4 +146,84 @@
   .state-error {
     @apply flex flex-col items-center gap-2 px-4 py-8 text-center;
   }
+
+  /* ── Club Votes: the ballot ────────────────────────────────────────────
+     The signature element is the tally strip: one slip per choice, as wide
+     as its share of the votes, the leading slip twice as tall. */
+
+  /* The strip on a card (small) and on an opened decision (tally-lg). */
+  .tally {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 16px;
+  }
+  .tally-seg {
+    height: 8px;
+    border-radius: 3px;
+    min-width: 8px;
+    flex-basis: 0;
+  }
+  .tally-seg.is-lead {
+    height: 16px;
+    border-radius: 4px;
+  }
+  .tally-lg { height: 24px; }
+  .tally-lg .tally-seg { height: 12px; border-radius: 4px; min-width: 10px; }
+  .tally-lg .tally-seg.is-lead { height: 24px; border-radius: 6px; }
+  /* No votes yet: an empty dashed track instead of a strip. */
+  .tally-empty {
+    flex: 1;
+    height: 8px;
+    border-radius: 3px;
+    border: 1px dashed rgb(var(--line));
+  }
+  .tally-lg .tally-empty { height: 12px; border-radius: 4px; }
+
+  /* A choice's square ballot box; fills with ink and a tick when it is
+     your vote. */
+  .ballot-box {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    border: 2px solid rgb(var(--line));
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgb(var(--on-accent));
+  }
+  .ballot-box.is-on {
+    background: rgb(var(--accent));
+    border-color: rgb(var(--accent));
+  }
+  .ballot-box svg { width: 18px; height: 18px; }
+
+  /* A choice's colour swatch: always beside the choice's name, never the
+     only way to tell choices apart. */
+  .swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    flex: none;
+  }
+
+  /* A choice's share bar in the opened decision's list. */
+  .share-bar {
+    display: flex;
+    height: 4px;
+    border-radius: 2px;
+    background: rgb(var(--raised));
+    margin-top: 6px;
+    overflow: hidden;
+  }
+  .share-fill { height: 4px; flex-basis: 0; min-width: 0; }
+
+  /* Status chip on a card: ink for "you have not voted", grey otherwise. */
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-small font-medium;
+  }
+  .chip svg { width: 16px; height: 16px; }
+  .chip-todo { @apply bg-accent/10 text-accent; }
+  .chip-done { @apply bg-raised text-fg; }
 }

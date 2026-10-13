@@ -58,32 +58,18 @@ of this applies.
 
 ## Starter template
 
-The screen this app currently ships — the "Starter template" hero with
-the app's thumbnail tile and the plain-English note on how the app gets
-built (by asking Homeroom bot) — is placeholder content from the
-Homeroom starter template, not product intent.
+The starter template screen has been replaced by the real app (the first
+version of Club Votes); this section is kept only for the notes below it.
 
-When the user asks for their first real feature, REPLACE the template
-screen rather than building alongside it:
-
-- remove the `usernode-starter-notice@1` block in `public/index.html`
-  (both sentinel comments and everything between them),
-- rewrite `README.md` to describe the actual app.
-
-Keep the `usernode-dev-console@1` forwarder `<script>` when rewriting the
-HTML — that block is platform infrastructure, not template content. So is
-the bridge `<script>`. The design kit is not placeholder either: build the
-real app with it, and fill in "## Design" below.
-
-The screen has a light and a dark look and follows the viewer's Homeroom
-theme, switching live when they change it: the theme `<script>` right after
-the bridge tag sets a `dark` class on `<html>`. Keep that script, and give
-everything you build both looks (the design kit's colour tokens carry both), unless one
-fixed look is the point of this app, like a game's own scene; then say so
-under "## Design" below. Unless a request asks for one, add
-no theme picker: the viewer's Homeroom setting is the control. "The
-platform's light/dark theme inside the app frame" in the platform
-conventions has the details.
+Keep the `usernode-dev-console@1` forwarder `<script>` in
+`public/index.html` — that block is platform infrastructure, not template
+content. So is the bridge `<script>`, and the theme `<script>` right
+after the bridge tag, which sets a `dark` class on `<html>` so the app
+follows the viewer's Homeroom theme. Give everything you build both
+looks (the design kit's colour tokens carry both). Unless a request asks
+for one, add no theme picker: the viewer's Homeroom setting is the
+control. "The platform's light/dark theme inside the app frame" in the
+platform conventions has the details.
 
 If a rule below this line conflicts with the hosted conventions, the
 hosted conventions win. This file is **app-specific** — write down
@@ -95,24 +81,32 @@ tables you've marked private), etc.
 
 ## About Club Votes
 
-Decide things together, one vote at a time
-
-_(add a sentence or two more of product context here so Claude Code has a
-shared understanding of what this app is for)_
+Decide things together, one vote at a time. Anyone posts a question with
+2–6 choices, everyone in the group votes (one changeable vote per
+person), people discuss in comments, and the asker closes the decision
+when the group has settled — that close picks the winner and is final.
+Reports hide a post or comment from everyone once three different people
+have reported it. Guests can read everything but cannot vote, post, or
+close.
 
 ## Design
 
-This app's look. The first real version fills in the blanks; every later
-change follows it, and updates it when a request changes the look on purpose.
+This app's look. Every change follows it, and updates it when a request
+changes the look on purpose.
 
-- **Palette:** _(name the accent, any second colour and the neutrals, e.g.
-  "accent: tomato red; second: basil green; neutrals: warm greys")_
-- **Signature element:** _(the one thing on screen drawn from this app's
-  subject, which no other app would have)_
-- **Type scale:** `text-title`, `text-heading`, `text-body`, `text-small`
-  _(change their sizes in `tailwind.config.js` if you must, not their number)_
-- **One fixed look:** _(only for an app drawn as its own scene, such as a
-  game: which look, and why. Otherwise delete this line.)_
+- **Palette:** accent "election ink" violet (`bg-accent`/`text-accent`)
+  on cool ballot-paper greys (`bg-ground`, `bg-surface`); neutrals are
+  cool greys with hairline `border-line`. Choice colours (teal, amber,
+  rose, blue, green, slate) label the options and never include the
+  accent violet, so the accent stays reserved for actions and the
+  viewer's own marks.
+- **Signature element:** the tally strip — one horizontal bar per
+  decision, segmented by choice in the choice colours, the leading
+  segment twice as tall, dashed and empty at zero votes. Ballot-box
+  squares fill with ink and a tick when the viewer has voted.
+- **Type scale:** `text-title`, `text-heading`, `text-body`,
+  `text-small`, with a rounded display face (`font-display`) for the
+  app title and question text only.
 
 The kit is in `styles/tailwind-input.css`: colour tokens with a light and
 a dark value (named in `tailwind.config.js`), and a few components
@@ -137,6 +131,19 @@ Re-theme by changing the token values there, keeping every text pair at
 
 ## App-specific conventions
 
-_(optional — e.g. "all currency values stored as integer cents, not
-floats"; "the `posts` table is append-only"; "avoid adding new
-dependencies"; etc.)_
+- The `decisions`, `choices`, `votes`, `comments`, `reports`, and
+  `demo_seeds` tables are marked `staging:private` — they hold
+  user-posted content and per-account demo state, so never expose them
+  publicly.
+- User-written text (questions, choices, comments) is rendered with
+  `textContent` only; never build DOM for it from HTML strings.
+- Writes are optimistic in the client and roll back with a toast on
+  failure; vote and close writes serialize with `SELECT … FOR UPDATE`
+  on the decision row.
+- Vote/close API responses return the decision without its comments;
+  the client keeps the comments already on screen when merging. Don't
+  assign such a response straight to the detail state.
+- Demo data (`?demo=1`, staging only) seeds six shared decisions
+  (ids 900001+) plus one per-account outing decision guarded by the
+  `demo_seeds` table. Everything on demo rows is votable and
+  commentable like real data.
