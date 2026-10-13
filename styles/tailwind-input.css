@@ -129,7 +129,7 @@
 
   /* The label above a section: sentence case, never uppercase or tracked. */
   .section-label {
-    @apply mb-2 px-1 text-small font-medium text-muted;
+    @apply mb-2 text-small font-medium text-muted;
   }
 
   /* The states of anything that loads data. Show exactly one at a time:

@@ -206,7 +206,7 @@
   }
 
   function tallyStrip(choices, total, large) {
-    const strip = h('div', { class: 'tally' + (large ? ' tally-lg' : ''), role: 'img', 'aria-label': 'Votes by choice' });
+    const strip = h('div', { class: 'tally my-2' + (large ? ' tally-lg' : ''), role: 'img', 'aria-label': 'Votes by choice' });
     if (!total) {
       strip.append(h('div', { class: 'tally-empty' }));
       return strip;
@@ -252,18 +252,18 @@
     const decided = state.decisions.filter((d) => d.closedAt);
 
     // Header
-    screen.append(h('header', { class: 'flex items-center gap-3' },
+    const headText = h('div', { class: 'min-w-0 flex-1' },
+      h('h1', { class: 'text-title font-display' }, 'Club Votes'));
+    if (state.loaded && !state.listError) {
+      headText.append(h('p', { class: 'text-small text-muted' }, `${open.length} open, ${decided.length} decided`));
+    }
+    screen.append(h('header', { class: 'mb-3 flex items-center gap-3' },
       h('div', { class: 'flex h-12 w-12 flex-none items-center justify-center rounded-xl bg-accent/10 text-accent', html: ICONS.ballot, 'aria-hidden': true }),
-      h('div', { class: 'min-w-0 flex-1' },
-        h('h1', { class: 'text-title font-display' }, 'Club Votes'),
-        h('p', { class: 'text-small text-muted' },
-          state.loaded && !state.listError
-            ? `${open.length} open, ${decided.length} decided`
-            : 'Decide things together')),
+      headText,
       h('button', { class: 'btn-primary', onclick: openPostSheet }, h('span', { class: 'h-5 w-5', html: ICONS.plus, 'aria-hidden': true }), 'Post')));
 
     if (state.demo) {
-      screen.append(h('p', { class: 'rounded-lg bg-raised px-3 py-2 text-small text-muted' },
+      screen.append(h('p', { class: 'mb-3 rounded-lg bg-raised px-3 py-2 text-small text-muted' },
         'Staging demo: these decisions, votes and comments are made-up sample data.'));
     }
 
@@ -295,22 +295,26 @@
 
     if (open.length) {
       screen.append(h('h2', { class: 'section-label' }, 'Open'));
-      screen.append(...open.map(decisionCard));
+      screen.append(cardsWrap(open));
     }
     if (decided.length) {
       screen.append(h('h2', { class: 'section-label' }, 'Decided'));
-      screen.append(...decided.map(decisionCard));
+      screen.append(cardsWrap(decided));
     }
   }
 
+  // 10 px of vertical space between decision cards, per the spec.
+  function cardsWrap(cards) {
+    return h('div', { class: 'flex flex-col gap-2.5' }, cards.map(decisionCard));
+  }
+
   function renderListSkeleton() {
-    for (let i = 0; i < 3; i += 1) {
-      screen.append(h('div', { class: 'card flex flex-col gap-3' },
+    screen.append(h('div', { class: 'flex flex-col gap-2.5' },
+      Array.from({ length: 3 }, () => h('div', { class: 'card flex flex-col gap-3' },
         h('div', { class: 'skeleton h-5 w-3/4' }),
         h('div', { class: 'skeleton h-3 w-1/3' }),
         h('div', { class: 'skeleton h-4 w-full' }),
-        h('div', { class: 'skeleton h-3 w-2/3' })));
-    }
+        h('div', { class: 'skeleton h-3 w-2/3' })))));
   }
 
   function decisionCard(d) {
@@ -326,10 +330,18 @@
       card.append(tallyStrip(d.choices, d.totalVotes, false));
       const li = leaderInfo(d);
       let line;
-      if (!d.totalVotes) line = 'No votes yet. Be the first.';
-      else if (li.tie) line = `${li.leaders.map((c) => c.label).join(' and ')} are tied with ${li.top} votes each`;
-      else line = `${li.leaders[0].label} leads with ${li.top} of ${d.totalVotes} votes`;
-      card.append(h('p', { class: 'text-small' }, line));
+      let leadRow;
+      if (!d.totalVotes) {
+        leadRow = h('p', { class: 'text-small' }, 'No votes yet. Be the first.');
+      } else {
+        if (li.tie) line = `${li.leaders.map((c) => c.label).join(' and ')} are tied with ${li.top} votes each`;
+        else line = `${li.leaders[0].label} leads with ${li.top} of ${d.totalVotes} votes`;
+        // Swatch(es) in the leader's choice colour, so the line names the slip.
+        leadRow = h('p', { class: 'flex items-center gap-1.5 text-small' },
+          li.leaders.map((c) => h('span', { class: 'swatch ' + segClass(c.position), 'aria-hidden': true })),
+          h('span', { class: 'min-w-0' }, line));
+      }
+      card.append(leadRow);
       card.append(h('div', { class: 'mt-3 flex items-center justify-between border-t border-line pt-3' },
         d.myChoiceId
           ? h('span', { class: 'chip chip-done' }, h('span', { class: 'inline-block h-4 w-4', html: ICONS.boxTick, 'aria-hidden': true }), `You voted ${choiceLabel(d, d.myChoiceId)}`)
@@ -757,7 +769,7 @@
       const r = { input, el: null };
       r.el = h('div', { class: 'flex items-end gap-2' },
         h('div', { class: 'min-w-0 flex-1' },
-          h('p', { class: 'mb-1 flex items-center gap-2 text-small text-muted' }, 'Choice ' + (i + 1), swatch(i)),
+          h('p', { class: 'mb-1 flex items-center gap-2 text-small text-muted' }, 'Choice ' + (i + 1), swatch(i + 1)),
           input),
         rows.length >= 2 ? remove : null);
       return r;
@@ -769,7 +781,7 @@
       // they belong on choices 3 to 6 only.
       rows.forEach((r, i) => {
         const label = r.el.querySelector('p');
-        label.replaceChildren('Choice ' + (i + 1), swatch(i));
+        label.replaceChildren('Choice ' + (i + 1), swatch(i + 1));
         const has = !!r.el.querySelector('button');
         if (i >= 2 && !has) r.el.append(removeFor(r));
         if (i < 2 && has) r.el.querySelector('button').remove();
